@@ -20,7 +20,7 @@ def main():
 
     while True:
         rawData, address = conn.recvfrom(65536)
-        destMac, srcMac, ethProto = webFrame(rawData)
+        destMac, srcMac, ethProto, data = webFrame(rawData)
         print("\nFrame:")
         print(TAB1 + "Destination: {}, Source: {}, Protocol: {}".format(destMac,srcMac,ethProto))
 
@@ -64,7 +64,7 @@ def main():
 #pack unframing 
 def webFrame(data):
     destMac, srcMac, proto = struct.unpack("! 6s 6s H", data[:14])
-    return getMacAdd(destMac), getMacAdd(srcMac), socket.htons(proto), data[:14]
+    return getMacAdd(destMac), getMacAdd(srcMac), socket.htons(proto), data[14:]
 
 #returns MAC address 
 def getMacAdd(bytesAdd):
@@ -76,6 +76,7 @@ def ipv4Packet(data):
     versHeadLen = data[0]
     vers = versHeadLen >> 4
     headLen = (versHeadLen & 15) * 4 
+    print("Data length " + str(len(data)))
     ttl, proto, src, target = struct.unpack("! 8x B B 2x 4s 4s", data[:20])
     return vers, headLen, ttl, proto, ipv4(src), ipv4(target), data[headLen:]
 
