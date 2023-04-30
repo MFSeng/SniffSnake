@@ -1,8 +1,9 @@
+#Imported Packages
 import socket 
 import struct
 import textwrap
 
-#Constants
+#Text Spacing for the Log Files
 TAB1 = "\t - "
 TAB2 = "\t\t - "
 TAB3 = "\t\t\t - "
@@ -14,32 +15,33 @@ DATATAB3 = "\t\t\t "
 DATATAB4 = "\t\t\t\t "
 
 
-#main function 
+#the Main Function. 
 def main():
+    #Connection String.
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
     while True:
         rawData, address = conn.recvfrom(65536)
-        destMac, srcMac, ethProto, data = webFrame(rawData)
+        destMac, srcMac, ethProto, data = EthernetUnpack(rawData)
         print("\nFrame:")
         print(TAB1 + "Destination: {}, Source: {}, Protocol: {}".format(destMac,srcMac,ethProto))
 
         # 8 for ipv4
         if ethProto == 8:
-            (vers, headLen, ttl, proto, src, target, data) = ipv4Packet(data)
+            (vers, headLen, ttl, proto, src, target, data) = IPV4Packet(data)
             print(TAB1 + "IPV4 Packet:")
             print(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,headLen,ttl))
             print(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
             #ICMP
             if proto == 1:
-                icmpType, code, checkSum, data = icmpPacket(data)
+                icmpType, code, checkSum, data = IMCPPacket(data)
                 print(TAB1 + "ICMP Packet:")
                 print(TAB2 + "Type: {}, Code: {}, Checksum: {}, ".format(icmpType,code,checkSum))
                 print(TAB2 + "Data: ")
                 print(ForMultiLine(DATATAB3, data))
             #TCP
             elif proto == 6:
-                (srcPort, destPort, sequ, ackno, flagUrg, flagAck, flagPsh, flagRst, flagSyn, flagFin, data) = tcpSeg(data)
+                (srcPort, destPort, sequ, ackno, flagUrg, flagAck, flagPsh, flagRst, flagSyn, flagFin, data) = TCPSeg(data)
                 print(TAB1 + "TCP Segment:")
                 print(TAB2 + "Source Port: {}, Destination Port: {}".format(srcPort, destPort))
                 print(TAB2 + "Sequence: {}, Acknowledgment: {}".format(sequ, ackno))
@@ -49,7 +51,7 @@ def main():
                 print(ForMultiLine(DATATAB3, data))
             #UDP
             elif proto == 17:
-                srcPort, destPort, length, data = udpSeg(data) 
+                srcPort, destPort, length, data = UDPSeg(data) 
                 print(TAB1 + "UDP Segment:")
                 print(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(srcPort, destPort, length))
 
@@ -61,36 +63,36 @@ def main():
             print("Data:")
             print(ForMultiLine(DATATAB1, data))
 
-#pack unframing 
-def webFrame(data):
+#Unpacks an Ethernet Frame Into the Two MAC Addresses and the Remaining Data.
+def EthernetUnpack(data):
     destMac, srcMac, proto = struct.unpack("! 6s 6s H", data[:14])
-    return getMacAdd(destMac), getMacAdd(srcMac), socket.htons(proto), data[14:]
+    return RetrievMAC(destMac), RetrievMAC(srcMac), socket.htons(proto), data[14:] #This line caused issues!!!
 
-#returns MAC address 
-def getMacAdd(bytesAdd):
+#Returns a Correctly Formatted MAC Address. 
+def RetrievMAC(bytesAdd):
     bytesString = map("{:02x}".format, bytesAdd)
     return ":".join(bytesString).upper()
 
-#unpacks IP Packet specifically IPV4
-def ipv4Packet(data):
+#Takes the IP Packet and Unpakes it Into Its Relevent Information. 
+def IPV4Packet(data):
     versHeadLen = data[0]
     vers = versHeadLen >> 4
     headLen = (versHeadLen & 15) * 4 
     print("Data length " + str(len(data)))
     ttl, proto, src, target = struct.unpack("! 8x B B 2x 4s 4s", data[:20])
-    return vers, headLen, ttl, proto, ipv4(src), ipv4(target), data[headLen:]
+    return vers, headLen, ttl, proto, IPV4(src), IPV4(target), data[headLen:]
 
-#returns ipv4 address correctly formated (255.255.255.255) 
-def ipv4(address):
+#Correctly Formats the IP address to the IPV4 format (255.255.255.255).
+def IPV4(address):
     return ".".join(map(str, address))
 
-#Unpacks the IMCP packet
-def icmpPacket(data):
+#Unpacks the IMCP Packet to Identify the Code and Check Sum. 
+def IMCPPacket(data):
     icmpType, code, checkSum = struct.unpack("! B B H", data[:4])
     return icmpType, code, checkSum, data[4:]
 
-#Unpacks the TCP segment
-def tcpSeg(data):
+#Unpacks the TCP Segment to Identify All Its Relevent Information Such as Acknolegment and Flags.
+def TCPSeg(data):
     (srcPort, destPort, sequ, ackno, offReserFlag) = struct.unpack("! H H L L H", data[:14])
     offset = (offReserFlag >> 12) * 4
     flagUrg = (offReserFlag & 32) >> 5
@@ -101,12 +103,12 @@ def tcpSeg(data):
     flagFin = offReserFlag & 1
     return srcPort, destPort, sequ, ackno, flagUrg, flagAck, flagPsh, flagRst, flagSyn, flagFin, data[offset:]
 
-#Unpack a UDP segment
-def udpSeg(data):
+#Unpacks the UDP Segment to Identify the Ports and Size.
+def UDPSeg(data):
     srcPort, destPort, size = struct.unpack("! H H 2x H", data[:8])
     return srcPort, destPort, size, data[8:]
 
-#Formats Multiple line Data
+#Takes Multiple Lines of Data and Formats Them Into One Single Line. 
 def ForMultiLine(prefix, string, size=80):
     size -= len(prefix)
     if isinstance(string, bytes):
@@ -115,6 +117,5 @@ def ForMultiLine(prefix, string, size=80):
             size -= 1
     return "\n".join([prefix + line for line in textwrap.wrap(string, size)])
 
-
-
+#Runtime.
 main()
