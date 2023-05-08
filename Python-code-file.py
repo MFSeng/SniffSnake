@@ -2,6 +2,7 @@
 import socket 
 import struct
 import textwrap
+import datetime
 
 #Text Spacing for the Log Files
 TAB1 = "\t - "
@@ -30,6 +31,9 @@ def main():
     print ("You entered the correct credentials")
     #Connection String.
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+
+    #user options
+
 
     while True:
         raw_data, address = conn.recvfrom(65536)
@@ -74,13 +78,17 @@ def main():
             print("Data:")
             print(Format_Multiple_Line(DATATAB1, data))
 
+        if (src == ""):
+            print ("you are on youtube boyyyy")
+            break
+
 #Unpacks an Ethernet Frame Into the Two MAC Addresses and the Remaining Data.
 def Ethernet_Unpack(data):
     dest_mac, src_mac, proto = struct.unpack("! 6s 6s H", data[:14])
-    return Retriev_MAC(dest_mac), Retriev_MAC(src_mac), socket.htons(proto), data[14:] #This line caused issues!!!
+    return Retrieve_MAC(dest_mac), Retrieve_MAC(src_mac), socket.htons(proto), data[14:] #This line caused issues!!!
 
 #Returns a Correctly Formatted MAC Address. 
-def Retriev_MAC(bytes_add):
+def Retrieve_MAC(bytes_add):
     bytes_string = map("{:02x}".format, bytes_add)
     return ":".join(bytes_string).upper()
 
@@ -89,7 +97,6 @@ def IPV4_Packet(data):
     vers_head_len = data[0]
     vers = vers_head_len >> 4
     head_len = (vers_head_len & 15) * 4 
-    print("Data length " + str(len(data)))
     ttl, proto, src, target = struct.unpack("! 8x B B 2x 4s 4s", data[:20])
     return vers, head_len, ttl, proto, IPV4(src), IPV4(target), data[head_len:]
 
