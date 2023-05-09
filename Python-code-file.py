@@ -37,8 +37,8 @@ def main():
     #user options
     while True:
         user_option = input("""\nEnter -P for passive sniffer mode 
-                            Enter -15 to see 15 ethernet frames printed tp the screen
-                            Enter -E to close the application
+Enter -15 to see 15 ethernet frames printed tp the screen
+Enter -E to close the application
                             : """)
         if (user_option == "-P"):
             while True:
@@ -95,43 +95,43 @@ def main():
                             raw_data, address = conn.recvfrom(65536)
                             dest_mac, src_mac, eth_proto, data = Ethernet_Unpack(raw_data)
                             log_file.write("\nFrame:")
-                            log_file.write(TAB1 + "Destination: {}, Source: {}, Protocol: {}".format(dest_mac,src_mac,eth_proto))
+                            log_file.write("\n" + TAB1 + "Destination: {}, Source: {}, Protocol: {}".format(dest_mac,src_mac,eth_proto))
 
                             # 8 for ipv4
                             if eth_proto == 8:
                                 (vers, head_len, ttl, proto, src, target, data) = IPV4_Packet(data)
                                 organisation = get_asn_from_ip(src)
-                                log_file.write(TAB1 + "IPV4 Packet:")
-                                log_file.write(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
-                                log_file.write(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
+                                log_file.write("\n" + TAB1 + "IPV4 Packet:")
+                                log_file.write("\n" + TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
+                                log_file.write("\n" + TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
                                 if (src == "127.0.0.1" or src == "127.0.0.53" or src =="10.83.81.23"):
                                     continue
                                 else:
                                     org = organisation["org"]
-                                    log_file.write(TAB3 + "Organisation: {}".format(org))
+                                    log_file.write("\n" + TAB3 + "Organisation: {}".format(org))
 
                                 #ICMP
                                 if proto == 1:
                                     icmp_type, code, check_sum, data = IMCP_Packet(data)
-                                    log_file.write(TAB1 + "ICMP Packet:")
-                                    log_file.write(TAB2 + "Type: {}, Code: {}, Checksum: {}, ".format(icmp_type,code,check_sum))
-                                    log_file.write(TAB2 + "Data: ")
+                                    log_file.write("\n" + TAB1 + "ICMP Packet:")
+                                    log_file.write("\n" + TAB2 + "Type: {}, Code: {}, Checksum: {}, ".format(icmp_type,code,check_sum))
+                                    log_file.write("\n" + TAB2 + "Data: ")
                                     log_file.write(Format_Multiple_Line(DATATAB3, data))
                                 #TCP
                                 elif proto == 6:
                                     (src_port, dest_port, sequ, ackno, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data) = TCP_Segment(data)
-                                    log_file.write(TAB1 + "TCP Segment:")
-                                    log_file.write(TAB2 + "Source Port: {}, Destination Port: {}".format(src_port, dest_port))
-                                    log_file.write(TAB2 + "Sequence: {}, Acknowledgment: {}".format(sequ, ackno))
-                                    log_file.write(TAB2 + "Flags:")
-                                    log_file.write(TAB3 + "URG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}".format(flag_urg,flag_ack,flag_psh,flag_rst,flag_syn,flag_fin))
-                                    log_file.write(TAB2 + "Data: ")
+                                    log_file.write("\n" + TAB1 + "TCP Segment:")
+                                    log_file.write("\n" + TAB2 + "Source Port: {}, Destination Port: {}".format(src_port, dest_port))
+                                    log_file.write("\n" + TAB2 + "Sequence: {}, Acknowledgment: {}".format(sequ, ackno))
+                                    log_file.write("\n" + TAB2 + "Flags:")
+                                    log_file.write("\n" + TAB3 + "URG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}".format(flag_urg,flag_ack,flag_psh,flag_rst,flag_syn,flag_fin))
+                                    log_file.write("\n" + TAB2 + "Data: ")
                                     log_file.write(Format_Multiple_Line(DATATAB3, data))
                                 #UDP
                                 elif proto == 17:
                                     src_port, dest_port, length, data = UDP_Segment(data) 
-                                    log_file.write(TAB1 + "UDP Segment:")
-                                    log_file.write(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
+                                    log_file.write("\n" + TAB1 + "UDP Segment:")
+                                    log_file.write("\n" + TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
                                 
                         log_file.close()
                         break
@@ -196,7 +196,7 @@ def main():
                     print(Format_Multiple_Line(DATATAB1, data))
 
         elif (user_option == "-E"):
-            exit
+            quit()
 
         else:
             print ("Invalid option Please try again.")
