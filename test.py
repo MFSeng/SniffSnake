@@ -3,6 +3,6 @@ import requests
 def get_asn_from_ip(ip):
     x = requests.get(f"https://ipinfo.io/{ip}/json")
     y = x.json()
-    print (y["org"])
+    print (y)
 
-get_asn_from_ip("45.129.95.254")
+get_asn_from_ip("10.83.81.23")

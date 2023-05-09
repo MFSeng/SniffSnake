@@ -3,6 +3,8 @@ import socket
 import struct
 import textwrap
 import datetime
+import time
+import requests
 
 #Text Spacing for the Log Files
 TAB1 = "\t - "
@@ -33,55 +35,175 @@ def main():
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
 
     #user options
-
-
     while True:
-        raw_data, address = conn.recvfrom(65536)
-        dest_mac, src_mac, eth_proto, data = Ethernet_Unpack(raw_data)
-        print("\nFrame:")
-        print(TAB1 + "Destination: {}, Source: {}, Protocol: {}".format(dest_mac,src_mac,eth_proto))
+        user_option = input("""\nEnter -P for passive sniffer mode 
+                            Enter -15 to see 15 ethernet frames printed tp the screen
+                            Enter -E to close the application
+                            : """)
+        if (user_option == "-P"):
+            while True:
+                raw_data, address = conn.recvfrom(65536)
+                dest_mac, src_mac, eth_proto, data = Ethernet_Unpack(raw_data)
+                print("\nFrame:")
+                print(TAB1 + "Destination: {}, Source: {}, Protocol: {}".format(dest_mac,src_mac,eth_proto))
 
-        # 8 for ipv4
-        if eth_proto == 8:
-            (vers, head_len, ttl, proto, src, target, data) = IPV4_Packet(data)
-            print(TAB1 + "IPV4 Packet:")
-            print(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
-            print(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
-            #ICMP
-            if proto == 1:
-                icmp_type, code, check_sum, data = IMCP_Packet(data)
-                print(TAB1 + "ICMP Packet:")
-                print(TAB2 + "Type: {}, Code: {}, Checksum: {}, ".format(icmp_type,code,check_sum))
-                print(TAB2 + "Data: ")
-                print(Format_Multiple_Line(DATATAB3, data))
-            #TCP
-            elif proto == 6:
-                (src_port, dest_port, sequ, ackno, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data) = TCP_Segment(data)
-                print(TAB1 + "TCP Segment:")
-                print(TAB2 + "Source Port: {}, Destination Port: {}".format(src_port, dest_port))
-                print(TAB2 + "Sequence: {}, Acknowledgment: {}".format(sequ, ackno))
-                print(TAB2 + "Flags:")
-                print(TAB3 + "URG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}".format(flag_urg,flag_ack,flag_psh,flag_rst,flag_syn,flag_fin))
-                print(TAB2 + "Data: ")
-                print(Format_Multiple_Line(DATATAB3, data))
-            #UDP
-            elif proto == 17:
-                src_port, dest_port, length, data = UDP_Segment(data) 
-                print(TAB1 + "UDP Segment:")
-                print(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
+                # 8 for ipv4
+                if eth_proto == 8:
+                    (vers, head_len, ttl, proto, src, target, data) = IPV4_Packet(data)
+                    organisation = get_asn_from_ip(src)
+                    print(TAB1 + "IPV4 Packet:")
+                    print(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
+                    print(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
+                    if (src == "127.0.0.1" or src == "127.0.0.53" or src =="10.83.81.23"):
+                        continue
+                    else:
+                        org = organisation["org"]
+                        print(TAB3 + "Organisation: {}".format(org))
 
-            #other protocol 
-            else:
-                print(TAB1 + "Data:")
-                print(Format_Multiple_Line(DATATAB2, data))
+                    #ICMP
+                    if proto == 1:
+                        icmp_type, code, check_sum, data = IMCP_Packet(data)
+                        print(TAB1 + "ICMP Packet:")
+                        print(TAB2 + "Type: {}, Code: {}, Checksum: {}, ".format(icmp_type,code,check_sum))
+                        print(TAB2 + "Data: ")
+                        print(Format_Multiple_Line(DATATAB3, data))
+                    #TCP
+                    elif proto == 6:
+                        (src_port, dest_port, sequ, ackno, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data) = TCP_Segment(data)
+                        print(TAB1 + "TCP Segment:")
+                        print(TAB2 + "Source Port: {}, Destination Port: {}".format(src_port, dest_port))
+                        print(TAB2 + "Sequence: {}, Acknowledgment: {}".format(sequ, ackno))
+                        print(TAB2 + "Flags:")
+                        print(TAB3 + "URG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}".format(flag_urg,flag_ack,flag_psh,flag_rst,flag_syn,flag_fin))
+                        print(TAB2 + "Data: ")
+                        print(Format_Multiple_Line(DATATAB3, data))
+                    #UDP
+                    elif proto == 17:
+                        src_port, dest_port, length, data = UDP_Segment(data) 
+                        print(TAB1 + "UDP Segment:")
+                        print(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
+
+                    if (org == "AS32934 Facebook, Inc."):
+                        print ("!!Inserection Detected!!")
+                        time_to_stop = time.time() + 60 * 1
+                        current_time = str(datetime.datetime.now())
+                        current_time = current_time.replace("-", "_")
+                        current_time = current_time.replace(":", "-")
+                        log_file = open((current_time + ".txt"), "x")
+
+                        while time.time() < time_to_stop:
+                            raw_data, address = conn.recvfrom(65536)
+                            dest_mac, src_mac, eth_proto, data = Ethernet_Unpack(raw_data)
+                            log_file.write("\nFrame:")
+                            log_file.write(TAB1 + "Destination: {}, Source: {}, Protocol: {}".format(dest_mac,src_mac,eth_proto))
+
+                            # 8 for ipv4
+                            if eth_proto == 8:
+                                (vers, head_len, ttl, proto, src, target, data) = IPV4_Packet(data)
+                                organisation = get_asn_from_ip(src)
+                                log_file.write(TAB1 + "IPV4 Packet:")
+                                log_file.write(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
+                                log_file.write(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
+                                if (src == "127.0.0.1" or src == "127.0.0.53" or src =="10.83.81.23"):
+                                    continue
+                                else:
+                                    org = organisation["org"]
+                                    log_file.write(TAB3 + "Organisation: {}".format(org))
+
+                                #ICMP
+                                if proto == 1:
+                                    icmp_type, code, check_sum, data = IMCP_Packet(data)
+                                    log_file.write(TAB1 + "ICMP Packet:")
+                                    log_file.write(TAB2 + "Type: {}, Code: {}, Checksum: {}, ".format(icmp_type,code,check_sum))
+                                    log_file.write(TAB2 + "Data: ")
+                                    log_file.write(Format_Multiple_Line(DATATAB3, data))
+                                #TCP
+                                elif proto == 6:
+                                    (src_port, dest_port, sequ, ackno, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data) = TCP_Segment(data)
+                                    log_file.write(TAB1 + "TCP Segment:")
+                                    log_file.write(TAB2 + "Source Port: {}, Destination Port: {}".format(src_port, dest_port))
+                                    log_file.write(TAB2 + "Sequence: {}, Acknowledgment: {}".format(sequ, ackno))
+                                    log_file.write(TAB2 + "Flags:")
+                                    log_file.write(TAB3 + "URG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}".format(flag_urg,flag_ack,flag_psh,flag_rst,flag_syn,flag_fin))
+                                    log_file.write(TAB2 + "Data: ")
+                                    log_file.write(Format_Multiple_Line(DATATAB3, data))
+                                #UDP
+                                elif proto == 17:
+                                    src_port, dest_port, length, data = UDP_Segment(data) 
+                                    log_file.write(TAB1 + "UDP Segment:")
+                                    log_file.write(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
+                                
+                        log_file.close()
+                        break
+
+                    #other protocol 
+                    else:
+                        print(TAB1 + "Data:")
+                        print(Format_Multiple_Line(DATATAB2, data))
+                else:
+                    print("Data:")
+                    print(Format_Multiple_Line(DATATAB1, data))
+
+        elif (user_option == "-15"):
+            for x in range (15):
+                raw_data, address = conn.recvfrom(65536)
+                dest_mac, src_mac, eth_proto, data = Ethernet_Unpack(raw_data)
+                print("\nFrame:")
+                print(TAB1 + "Destination: {}, Source: {}, Protocol: {}".format(dest_mac,src_mac,eth_proto))
+
+                # 8 for ipv4
+                if eth_proto == 8:
+                    (vers, head_len, ttl, proto, src, target, data) = IPV4_Packet(data)
+                    organisation = get_asn_from_ip(src)
+                    print(TAB1 + "IPV4 Packet:")
+                    print(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
+                    print(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
+                    if (src == "127.0.0.1" or src == "127.0.0.53" or src =="10.83.81.23"):
+                        continue
+                    else:
+                        org = organisation["org"]
+                        print(TAB3 + "Organisation: {}".format(org))
+
+                    #ICMP
+                    if proto == 1:
+                        icmp_type, code, check_sum, data = IMCP_Packet(data)
+                        print(TAB1 + "ICMP Packet:")
+                        print(TAB2 + "Type: {}, Code: {}, Checksum: {}, ".format(icmp_type,code,check_sum))
+                        print(TAB2 + "Data: ")
+                        print(Format_Multiple_Line(DATATAB3, data))
+                    #TCP
+                    elif proto == 6:
+                        (src_port, dest_port, sequ, ackno, flag_urg, flag_ack, flag_psh, flag_rst, flag_syn, flag_fin, data) = TCP_Segment(data)
+                        print(TAB1 + "TCP Segment:")
+                        print(TAB2 + "Source Port: {}, Destination Port: {}".format(src_port, dest_port))
+                        print(TAB2 + "Sequence: {}, Acknowledgment: {}".format(sequ, ackno))
+                        print(TAB2 + "Flags:")
+                        print(TAB3 + "URG: {}, ACK: {}, PSH: {}, RST: {}, SYN: {}, FIN: {}".format(flag_urg,flag_ack,flag_psh,flag_rst,flag_syn,flag_fin))
+                        print(TAB2 + "Data: ")
+                        print(Format_Multiple_Line(DATATAB3, data))
+                    #UDP
+                    elif proto == 17:
+                        src_port, dest_port, length, data = UDP_Segment(data) 
+                        print(TAB1 + "UDP Segment:")
+                        print(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
+
+                    #other protocol 
+                    else:
+                        print(TAB1 + "Data:")
+                        print(Format_Multiple_Line(DATATAB2, data))
+                else:
+                    print("Data:")
+                    print(Format_Multiple_Line(DATATAB1, data))
+
+        elif (user_option == "-E"):
+            exit
+
         else:
-            print("Data:")
-            print(Format_Multiple_Line(DATATAB1, data))
+            print ("Invalid option Please try again.")
+            continue
+    
 
-        if (src == ""):
-            print ("you are on youtube boyyyy")
-            break
-
+#Functions:
 #Unpacks an Ethernet Frame Into the Two MAC Addresses and the Remaining Data.
 def Ethernet_Unpack(data):
     dest_mac, src_mac, proto = struct.unpack("! 6s 6s H", data[:14])
@@ -134,6 +256,12 @@ def Format_Multiple_Line(prefix, string, size=80):
         if size % 2:
             size -= 1
     return "\n".join([prefix + line for line in textwrap.wrap(string, size)])
+
+#Uses an api to detect the organisation of the IP address.
+def get_asn_from_ip(ip):
+    x = requests.get(f"https://ipinfo.io/{ip}/json")
+    y = x.json()
+    return y
 
 #Runtime.
 main()
