@@ -55,7 +55,7 @@ Enter -E to close the application
                     print(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
                     print(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
                     if (target == "127.0.0.1" or target == "127.0.0.53" or target =="10.83.81.23"):
-                        continue
+                        pass
                     else:
                         org = organisation["org"]
                         print(TAB3 + "Organisation: {}".format(org))
@@ -105,7 +105,7 @@ Enter -E to close the application
                                 log_file.write("\n" + TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
                                 log_file.write("\n" + TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
                                 if (target == "127.0.0.1" or target == "127.0.0.53" or target =="10.83.81.23"):
-                                    continue
+                                    pass
                                 else:
                                     org = organisation["org"]
                                     log_file.write("\n" + TAB3 + "Organisation: {}".format(org))
@@ -164,7 +164,7 @@ Enter -E to close the application
                     print(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
                     print(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
                     if (target == "127.0.0.1" or target == "127.0.0.53" or target =="10.83.81.23"):
-                        continue
+                        pass
                     else:
                         org = organisation["org"]
                         print(TAB3 + "Organisation: {}".format(org))
