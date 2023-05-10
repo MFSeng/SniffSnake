@@ -50,11 +50,11 @@ Enter -E to close the application
                 # 8 for ipv4
                 if eth_proto == 8:
                     (vers, head_len, ttl, proto, src, target, data) = IPV4_Packet(data)
-                    organisation = get_asn_from_ip(src)
+                    organisation = get_asn_from_ip(target)
                     print(TAB1 + "IPV4 Packet:")
                     print(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
                     print(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
-                    if (src == "127.0.0.1" or src == "127.0.0.53" or src =="10.83.81.23"):
+                    if (target == "127.0.0.1" or target == "127.0.0.53" or target =="10.83.81.23"):
                         continue
                     else:
                         org = organisation["org"]
@@ -82,9 +82,6 @@ Enter -E to close the application
                         src_port, dest_port, length, data = UDP_Segment(data) 
                         print(TAB1 + "UDP Segment:")
                         print(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
-                    else:
-                        print(TAB1 + "Data:")
-                        print(Format_Multiple_Line(DATATAB2, data))
 
                     if (org == "AS32934 Facebook, Inc."):
                         print ("!!Inserection Detected!!")
@@ -103,11 +100,11 @@ Enter -E to close the application
                             # 8 for ipv4
                             if eth_proto == 8:
                                 (vers, head_len, ttl, proto, src, target, data) = IPV4_Packet(data)
-                                organisation = get_asn_from_ip(src)
+                                organisation = get_asn_from_ip(target)
                                 log_file.write("\n" + TAB1 + "IPV4 Packet:")
                                 log_file.write("\n" + TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
                                 log_file.write("\n" + TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
-                                if (src == "127.0.0.1" or src == "127.0.0.53" or src =="10.83.81.23"):
+                                if (target == "127.0.0.1" or target == "127.0.0.53" or target =="10.83.81.23"):
                                     continue
                                 else:
                                     org = organisation["org"]
@@ -145,7 +142,9 @@ Enter -E to close the application
 
                         log_file.close()
                         break
-    
+                    else:
+                        print(TAB1 + "Data:")
+                        print(Format_Multiple_Line(DATATAB2, data))
                 else:
                     print("Data:")
                     print(Format_Multiple_Line(DATATAB1, data))
@@ -160,11 +159,11 @@ Enter -E to close the application
                 # 8 for ipv4
                 if eth_proto == 8:
                     (vers, head_len, ttl, proto, src, target, data) = IPV4_Packet(data)
-                    organisation = get_asn_from_ip(src)
+                    organisation = get_asn_from_ip(target)
                     print(TAB1 + "IPV4 Packet:")
                     print(TAB2 + "Version: {}, Header Length: {}, TTL: {}".format(vers,head_len,ttl))
                     print(TAB2 + "Protocol: {}, Source: {}, Target: {}".format(proto,src,target))
-                    if (src == "127.0.0.1" or src == "127.0.0.53" or src =="10.83.81.23"):
+                    if (target == "127.0.0.1" or target == "127.0.0.53" or target =="10.83.81.23"):
                         continue
                     else:
                         org = organisation["org"]
