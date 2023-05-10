@@ -39,7 +39,7 @@ def main():
         user_option = input("""\nEnter -P for passive sniffer mode 
 Enter -15 to see 15 ethernet frames printed tp the screen
 Enter -E to close the application
-                            : """)
+---> """)
         if (user_option == "-P"):
             while True:
                 raw_data, address = conn.recvfrom(65536)
@@ -82,10 +82,13 @@ Enter -E to close the application
                         src_port, dest_port, length, data = UDP_Segment(data) 
                         print(TAB1 + "UDP Segment:")
                         print(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
+                    else:
+                        print(TAB1 + "Data:")
+                        print(Format_Multiple_Line(DATATAB2, data))
 
                     if (org == "AS32934 Facebook, Inc."):
                         print ("!!Inserection Detected!!")
-                        time_to_stop = time.time() + 60 * 1
+                        time_to_stop = time.time() + 60 * 5
                         current_time = str(datetime.datetime.now())
                         current_time = current_time.replace("-", "_")
                         current_time = current_time.replace(":", "-")
@@ -132,14 +135,17 @@ Enter -E to close the application
                                     src_port, dest_port, length, data = UDP_Segment(data) 
                                     log_file.write("\n" + TAB1 + "UDP Segment:")
                                     log_file.write("\n" + TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
-                                
+                                #other protocol 
+                                else:
+                                    log_file.write("\n" + TAB1 + "Data:")
+                                    log_file.write("\n" + Format_Multiple_Line(DATATAB2, data))
+                            else:
+                                log_file.write("\n" + "Data:")
+                                log_file.write("\n" + Format_Multiple_Line(DATATAB1, data))
+
                         log_file.close()
                         break
-
-                    #other protocol 
-                    else:
-                        print(TAB1 + "Data:")
-                        print(Format_Multiple_Line(DATATAB2, data))
+    
                 else:
                     print("Data:")
                     print(Format_Multiple_Line(DATATAB1, data))
@@ -186,7 +192,6 @@ Enter -E to close the application
                         src_port, dest_port, length, data = UDP_Segment(data) 
                         print(TAB1 + "UDP Segment:")
                         print(TAB2 + "Source Port: {}, Destination Port: {}, Length: {}".format(src_port, dest_port, length))
-
                     #other protocol 
                     else:
                         print(TAB1 + "Data:")
