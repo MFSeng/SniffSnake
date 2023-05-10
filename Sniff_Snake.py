@@ -88,7 +88,7 @@ Enter -E to close the application
 
                     if (org == "AS32934 Facebook, Inc."):
                         print ("!!Inserection Detected!!")
-                        time_to_stop = time.time() + 60 * 5
+                        time_to_stop = time.time() + 60 * 1
                         current_time = str(datetime.datetime.now())
                         current_time = current_time.replace("-", "_")
                         current_time = current_time.replace(":", "-")
@@ -264,7 +264,7 @@ def Format_Multiple_Line(prefix, string, size=80):
 
 #Uses an api to detect the organisation of the IP address.
 def get_asn_from_ip(ip):
-    x = requests.get(f"https://ipinfo.io/{ip}/json")
+    x = requests.get(f"https://ipinfo.io/{ip}/json?token=94b2b26ca36876")
     y = x.json()
     return y
 
