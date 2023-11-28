@@ -4,7 +4,7 @@
 SniffSnake is a Python script that deconstructs Ethernet frames to detect whether a malicious or unproductive website is being used.
 At this time the code only detects if the user is on facebook.com.
 This code was written as part of my undergraduate disserataion. 
-Imporvments may be made if I decide to continue with this for my Masters project.
+Improvments may be made if I decide to continue with this for my Masters project.
 ---
 ## How to Access the code
 **Note the File path may vary depedning on repository location**
